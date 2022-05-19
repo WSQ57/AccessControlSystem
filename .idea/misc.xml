@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/qrs_software/android/socket/app/src/main/res/layout/activity_sqlite.xml" value="0.23369565217391305" />
+        <entry key="..\:/qrs_software/android/socket/app/src/main/res/layout/main.xml" value="0.22826086956521738" />
+        <entry key="..\:/qrs_software/android/socket/app/src/main/res/layout/nfc.xml" value="0.264" />
+      </map>
+    </option>
+  </component>
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>
