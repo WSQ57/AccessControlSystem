@@ -64,12 +64,9 @@ public class SQLiteActivity extends Activity {
             + LoginTime.LOGIN_TIME + " not null " + ");";
 
     public void addDate(String loginTime, String loginUser){
-        Log.d("asd","1");
+        Log.d("addDate","1");
         helper = new DBConnection(this);
         final SQLiteDatabase db = helper.getWritableDatabase();
-//        //删除旧数据
-//        String where = UserSchema.ID + " = " + id_this;
-//        db.delete(LoginTime.TABLE_NAME, where ,null);
 
         // 插入新数据
         ContentValues values = new ContentValues();
@@ -109,7 +106,6 @@ public class SQLiteActivity extends Activity {
             String where = UserSchema.PASSWORD + "='" + input_password + "'";
             Cursor cursor = db.query(UserSchema.TABLE_NAME,null,where,null,
                     null,null,null);
-
             if(cursor.moveToFirst()){
                 do {
                     String user_name_this = cursor.getString(1);
@@ -121,9 +117,10 @@ public class SQLiteActivity extends Activity {
             }
             cursor.close();
         }
+        Intent returnValue = new Intent();
         if(visitor == null){
             // 查无此人
-            Intent returnValue = new Intent();
+
             Log.d("SQLiteActivity", "No such person");
             setResult(RESULT_CANCELED, returnValue);
             finish();
@@ -133,10 +130,23 @@ public class SQLiteActivity extends Activity {
             Date curDate = new Date(System.currentTimeMillis());
             String str = formatter.format(curDate);
             Log.d("SQLiteActivity",str);
-            addDate(str,visitor);
 
-            Intent returnValue = new Intent();
-            Log.d("SQLiteActivity", String.valueOf(input_password));
+
+            // 查询时间
+            Cursor cursor = db.query(LoginTime.TABLE_NAME,null,null,null,
+                    null,null,LoginTime.LOGIN_TIME + " DESC");
+            int count = 0;
+            if(cursor.moveToFirst()) {
+                do{
+                    String tmp = cursor.getString(1) + " "+ cursor.getString(2);
+                    String reName = "time" + count;
+                    returnValue.putExtra(reName,tmp);
+                    count++;
+                }while (cursor.moveToNext() && count < 5);
+            }
+            returnValue.putExtra("count",count);
+            addDate(str,visitor);
+            Log.d("return Value", String.valueOf(input_password));
             returnValue.putExtra("visitor", visitor);
             setResult(RESULT_OK, returnValue);
             finish();

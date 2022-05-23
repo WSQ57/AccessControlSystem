@@ -97,6 +97,11 @@ public class nfcActivity extends Activity implements OnClickListener{
 				if(resultCode == RESULT_OK){
 					String returnedData = data.getStringExtra("visitor");
 					Log.d("returnedData",returnedData);
+					int count = data.getIntExtra("count",0);
+					for(int i = 0; i < count; i++){
+						String name = "time" + i;
+						Log.d("loginHistory",data.getStringExtra(name));
+					}
 				}
 				break;
 			default:
