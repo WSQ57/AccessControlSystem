@@ -6,8 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,6 +16,14 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 
 public class SQLiteActivity extends Activity {
     View.OnClickListener listener_add = null;
@@ -29,6 +37,7 @@ public class SQLiteActivity extends Activity {
     Button button_clear;
     Button button_query;
     DBConnection helper;
+    private static boolean importDB = false;
     public int id_this;
     public interface UserSchema {
         String TABLE_NAME = "Users";          //Table Name
@@ -42,6 +51,34 @@ public class SQLiteActivity extends Activity {
         String LOGIN_TIME = "login_time";
         String LOGIN_USER = "login_user";
     }
+
+
+    private static final String UserSql = "CREATE TABLE " + UserSchema.TABLE_NAME + " ("
+            + UserSchema.ID  + " INTEGER primary key autoincrement, "
+            + UserSchema.USER_NAME + " text not null, "
+            + UserSchema.PASSWORD  + " text not null " + ");";
+
+    private static final String LoginSql = "CREATE TABLE " + LoginTime.TABLE_NAME + " ("
+            + LoginTime.ID  + " INTEGER primary key autoincrement, "
+            + LoginTime.LOGIN_USER + " text not null, "
+            + LoginTime.LOGIN_TIME + " not null " + ");";
+
+    public void addDate(String loginTime, String loginUser){
+        Log.d("asd","1");
+        helper = new DBConnection(this);
+        final SQLiteDatabase db = helper.getWritableDatabase();
+//        //删除旧数据
+//        String where = UserSchema.ID + " = " + id_this;
+//        db.delete(LoginTime.TABLE_NAME, where ,null);
+
+        // 插入新数据
+        ContentValues values = new ContentValues();
+        values.put(LoginTime.LOGIN_TIME, loginTime);
+        values.put(LoginTime.LOGIN_USER, loginUser);
+        db.insert(LoginTime.TABLE_NAME, null, values);
+        db.close();
+    }
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,6 +87,15 @@ public class SQLiteActivity extends Activity {
         final EditText mEditText02 = (EditText)findViewById(R.id.EditText02);
         //建立数据库PhoneBookDB和表Table:Users
         helper = new DBConnection(this);
+        if(!importDB) {
+            try {
+                Log.d("importDB","Importing");
+                helper.copyDataBase();
+                importDB = true;
+            } catch (IOException ioe) {
+                throw new Error("Unable to create database");
+            }
+        }
         final SQLiteDatabase db = helper.getWritableDatabase();
 
         //接收传入参数
@@ -60,7 +106,7 @@ public class SQLiteActivity extends Activity {
         if(input_password != null){
             //接收到参数
             //进行查询操作
-            String where = UserSchema.PASSWORD + "=" + input_password;
+            String where = UserSchema.PASSWORD + "='" + input_password + "'";
             Cursor cursor = db.query(UserSchema.TABLE_NAME,null,where,null,
                     null,null,null);
 
@@ -83,6 +129,11 @@ public class SQLiteActivity extends Activity {
             finish();
         }
         else if(!visitor.equals("admin")) { // 非管理员用户，不可管理数据库
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss ");
+            Date curDate = new Date(System.currentTimeMillis());
+            String str = formatter.format(curDate);
+            Log.d("SQLiteActivity",str);
+            addDate(str,visitor);
 
             Intent returnValue = new Intent();
             Log.d("SQLiteActivity", String.valueOf(input_password));
@@ -191,28 +242,48 @@ public class SQLiteActivity extends Activity {
     public static class DBConnection extends SQLiteOpenHelper {
         private static final String DATABASE_NAME = "AccessControlDB";
         private static final int DATABASE_VERSION = 1;
+        private final Context myContext;
+
         private DBConnection(Context ctx) {
             super(ctx, DATABASE_NAME, null, DATABASE_VERSION);
+            this.myContext = ctx;
         }
+
+        private void copyDataBase()throws IOException {
+            //Open your local db as the input stream
+            String DB_NAME = "AccessControlDB";
+            InputStream myInput = myContext.getAssets().open(DB_NAME);
+            // Path to the just created empty db
+            String DB_PATH = "/data/data/com.weiqian.demo/databases/";
+            String outFileName = DB_PATH + DB_NAME;
+            //Open the empty db as the output stream
+            OutputStream myOutput = new FileOutputStream(outFileName);
+            //transfer bytes from the inputfile to the outputfile
+            byte[]buffer = new byte[1024];
+            int length;
+            while ((length = myInput.read(buffer)) > 0) {
+                myOutput.write(buffer, 0, length);
+            }
+
+            //Close the streams
+            myOutput.flush();
+            myOutput.close();
+            myInput.close();
+        }
+
         public void onCreate(SQLiteDatabase db) {
             //创建门禁成员表
-            String sql = "CREATE TABLE " + UserSchema.TABLE_NAME + " ("
-                    + UserSchema.ID  + " INTEGER primary key autoincrement, "
-                    + UserSchema.USER_NAME + " text not null, "
-                    + UserSchema.PASSWORD  + " text not null " + ");";
             //Log.i("haiyang:createDB=", sql);
-            db.execSQL(sql);
+            db.execSQL(UserSql);
 
             //创建登录记录表
-            sql = "CREATE TABLE " + LoginTime.TABLE_NAME + " ("
-                    + LoginTime.ID  + " INTEGER primary key autoincrement, "
-                    + LoginTime.LOGIN_USER + " text not null, "
-                    + LoginTime.LOGIN_TIME + "time not null " + ");";
-
-            db.execSQL(sql);
+            db.execSQL(LoginSql);
         }
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             // TODO Auto-generated method stub
+            db.execSQL(UserSql);
+            db.execSQL(LoginSql);
+            onCreate(db);
         }
     }
 

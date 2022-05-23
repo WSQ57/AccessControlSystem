@@ -86,7 +86,7 @@ public class nfcActivity extends Activity implements OnClickListener{
 	if(v.getId() == R.id.nfc_read){
 		// 模拟读取后调用数据库比对信息
 		Intent intent = new Intent(nfcActivity.this, SQLiteActivity.class);
-		intent.putExtra("password","0123");
+		intent.putExtra("password","1111");
 		startActivityForResult(intent,1);
 	}
 	}
