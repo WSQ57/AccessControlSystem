@@ -265,6 +265,12 @@ public class SQLiteActivity extends Activity {
             InputStream myInput = myContext.getAssets().open(DB_NAME);
             // Path to the just created empty db
             String DB_PATH = "/data/data/com.weiqian.demo/databases/";
+
+            File dir = new File(DB_PATH);
+            if (!dir.exists()){
+                dir.mkdirs();
+            }
+
             String outFileName = DB_PATH + DB_NAME;
             //Open the empty db as the output stream
             OutputStream myOutput = new FileOutputStream(outFileName);

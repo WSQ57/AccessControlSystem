@@ -102,6 +102,9 @@ public class nfcActivity extends Activity implements OnClickListener{
 						String name = "time" + i;
 						Log.d("loginHistory",data.getStringExtra(name));
 					}
+
+					Intent intent = new Intent(nfcActivity.this, LedJniActivity.class);
+					startActivity(intent);
 				}
 				break;
 			default:
